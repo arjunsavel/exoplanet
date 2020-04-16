@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+<title>Transit fitting &mdash; exoplanet 0.3.1.dev1+gc54f7b4 documentation</title>
+  
+
+<link rel="shortcut icon" href="../../_static/logo.png"/><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono"><link rel="stylesheet" href="../../_static/typlog.css?v=0.7.3" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme.css?v=0.7.3" type="text/css" /><link rel="stylesheet" href="../../_static/css/exoplanet.css?v=2020-01-15" type="text/css" />
+      <link rel="index" title="Index" href="../../genindex/"/>
+      <link rel="search" title="Search" href="../../search/"/>
+    <link rel="top" title="exoplanet 0.3.1.dev1+gc54f7b4 documentation" href="../../"/>
+      <link rel="next" title="Astrometric fitting" href="../astrometric/"/>
+      <link rel="prev" title="Radial velocity fitting" href="../rv/"/>
+  <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create', '');ga('send', 'pageview');</script>
+  <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="exoplanet">
+  <meta property="og:title" content="Transit fitting">
+  <meta name="twitter:card" content="summary">
+<script src="https://kit.fontawesome.com/12d959964a.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/mustache@latest"></script>
+<script>
+    $.ajax({
+        dataType: "json",
+        url: "https://raw.githubusercontent.com/exoplanet-dev/exoplanet/gh-pages/versions.json",
+        success: function (data) {
+            var versions = Object.keys(data).sort();
+            $(function render() {
+                var template = document.getElementById('versions-template').innerHTML;
+                var rendered = Mustache.render(template, { versions: versions });
+                document.body.innerHTML += rendered;
+                $(".current-version").click(function () {
+                    $(".versions-dropdown").toggle();
+                });
+            });
+        }
+    });
+</script>
+
+</head>
+<body role="document" data-page="tutorials/transit">
+  <header class="t-head">
+    <div class="t-head_menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M64 384h384v-42.666H64V384zm0-106.666h384v-42.667H64v42.667zM64 128v42.665h384V128H64z"/></svg></div>
+    <a class="t-head_logo" href="../../"><img src="../../_static/logo.png" alt="Logo"/>exoplanet
+    </a>
+  </header>
+  <aside class="t-sidebar">
+    <div class="t-sidebar_close">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M405 136.798L375.202 107 256 226.202 136.798 107 107 136.798 226.202 256 107 375.202 136.798 405 256 285.798 375.202 405 405 375.202 285.798 256z"/></svg>
+    </div>
+    <div class="inner">
+<a class="logo" href="../../"><img src="../../_static/logo.png" alt="Logo"/>
+    exoplanet
+</a><div class="globaltoc">
+<p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user/install/">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation/">Citing exoplanet &amp; its dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/api/">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/dev/">Developer documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro-to-pymc3/">A quick intro to PyMC3 for exoplaneteers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pymc3-extras/">PyMC3 extras</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rv/">Radial velocity fitting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Transit fitting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-transit-model-in-pymc3">The transit model in PyMC3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sampling">Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phase-plots">Phase plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#citations">Citations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../astrometric/">Astrometric fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gp/">Scalable Gaussian processes in PyMC3</a></li>
+</ul>
+
+</div><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../">Documentation overview</a><ul>
+      <li>Previous: <a href="../rv/" title="previous chapter">Radial velocity fitting</a></li>
+      <li>Next: <a href="../astrometric/" title="next chapter">Astrometric fitting</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox">
+  <form class="search" action="../../search/" method="get">
+    <div class="input-group">
+      <input type="text" name="q" placeholder="Search" />
+      <button type="submit">Go</button>
+    </div>
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+  </aside>
+  <div class="t-content">
+    <div class="t-body yue">
+      
+
+
+  <span class="target" id="module-exoplanet"></span><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This tutorial was generated from an IPython notebook that can be
+downloaded <a class="reference external" href="../../_static/notebooks/transit.ipynb">here</a>.</p>
+</div>
+<div class="section" id="transit-fitting">
+<span id="transit"></span><h1>Transit fitting<a class="headerlink" href="#transit-fitting" title="Permalink to this headline">¶</a></h1>
+<p><em>exoplanet</em> includes methods for computing the light curves transiting
+planets. In its simplest form this can be used to evaluate a light curve
+like you would do with
+<a class="reference external" href="https://astro.uchicago.edu/~kreidberg/batman/">batman</a>, for example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">import</span> <span class="nn">exoplanet</span> <span class="k">as</span> <span class="nn">xo</span>
+
+<span class="c1"># The light curve calculation requires an orbit</span>
+<span class="n">orbit</span> <span class="o">=</span> <span class="n">xo</span><span class="o">.</span><span class="n">orbits</span><span class="o">.</span><span class="n">KeplerianOrbit</span><span class="p">(</span><span class="n">period</span><span class="o">=</span><span class="mf">3.456</span><span class="p">)</span>
+
+<span class="c1"># Compute a limb-darkened light curve using starry</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]</span>
+<span class="n">light_curve</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">xo</span><span class="o">.</span><span class="n">LimbDarkLightCurve</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">get_light_curve</span><span class="p">(</span><span class="n">orbit</span><span class="o">=</span><span class="n">orbit</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">texp</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="c1"># Note: the `eval` is needed because this is using Theano in</span>
+<span class="c1"># the background</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">light_curve</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C0&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;relative flux&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time [days]&quot;</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">t</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+</pre></div>
+</div>
+<img alt="../../_images/transit_4_0.png" src="../../_images/transit_4_0.png" />
+<p>But the real power comes from the fact that this is defined as a <a class="reference external" href="http://deeplearning.net/software/theano/extending/extending_theano.html">Theano
+operation</a>
+so it can be combined with PyMC3 to do transit inference using
+Hamiltonian Monte Carlo.</p>
+<div class="section" id="the-transit-model-in-pymc3">
+<h2>The transit model in PyMC3<a class="headerlink" href="#the-transit-model-in-pymc3" title="Permalink to this headline">¶</a></h2>
+<p>In this section, we will construct a simple transit fit model using
+<em>PyMC3</em> and then we will fit a two planet model to simulated data. To
+start, let’s randomly sample some periods and phases and then define the
+time sampling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="n">periods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">t0s</span> <span class="o">=</span> <span class="n">periods</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
+<span class="n">yerr</span> <span class="o">=</span> <span class="mf">5e-4</span>
+</pre></div>
+</div>
+<p>Then, define the parameters. In this simple model, we’ll just fit for
+the limb darkening parameters of the star, and the period, phase, impact
+parameter, and radius ratio of the planets (note: this is already 10
+parameters and running MCMC to convergence using
+<a class="reference external" href="https://emcee.readthedocs.io">emcee</a> would probably take at least an
+hour). For the limb darkening, we’ll use a quadratic law as
+parameterized by <a class="reference external" href="https://arxiv.org/abs/1308.0009">Kipping (2013)</a>.
+This reparameterizations is implemented in <em>exoplanet</em> as custom <em>PyMC3</em>
+distribution <a class="reference internal" href="../../user/api/#exoplanet.distributions.QuadLimbDark" title="exoplanet.distributions.QuadLimbDark"><code class="xref py py-class docutils literal notranslate"><span class="pre">exoplanet.distributions.QuadLimbDark</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pymc3</span> <span class="k">as</span> <span class="nn">pm</span>
+
+<span class="k">with</span> <span class="n">pm</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span> <span class="k">as</span> <span class="n">model</span><span class="p">:</span>
+
+    <span class="c1"># The baseline flux</span>
+    <span class="n">mean</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="c1"># The time of a reference transit for each planet</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="s2">&quot;t0&quot;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">t0s</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># The log period; also tracking the period itself</span>
+    <span class="n">logP</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="s2">&quot;logP&quot;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">periods</span><span class="p">),</span> <span class="n">sd</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">period</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Deterministic</span><span class="p">(</span><span class="s2">&quot;period&quot;</span><span class="p">,</span> <span class="n">pm</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logP</span><span class="p">))</span>
+
+    <span class="c1"># The Kipping (2013) parameterization for quadratic limb darkening paramters</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">xo</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">QuadLimbDark</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">testval</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]))</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span>
+        <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">testval</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.04</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">xo</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">ImpactParameter</span><span class="p">(</span>
+        <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">ror</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">testval</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Set up a Keplerian orbit for the planets</span>
+    <span class="n">orbit</span> <span class="o">=</span> <span class="n">xo</span><span class="o">.</span><span class="n">orbits</span><span class="o">.</span><span class="n">KeplerianOrbit</span><span class="p">(</span><span class="n">period</span><span class="o">=</span><span class="n">period</span><span class="p">,</span> <span class="n">t0</span><span class="o">=</span><span class="n">t0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="c1"># Compute the model light curve using starry</span>
+    <span class="n">light_curves</span> <span class="o">=</span> <span class="n">xo</span><span class="o">.</span><span class="n">LimbDarkLightCurve</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="o">.</span><span class="n">get_light_curve</span><span class="p">(</span>
+        <span class="n">orbit</span><span class="o">=</span><span class="n">orbit</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span>
+    <span class="p">)</span>
+    <span class="n">light_curve</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">light_curves</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">mean</span>
+
+    <span class="c1"># Here we track the value of the model light curve for plotting</span>
+    <span class="c1"># purposes</span>
+    <span class="n">pm</span><span class="o">.</span><span class="n">Deterministic</span><span class="p">(</span><span class="s2">&quot;light_curves&quot;</span><span class="p">,</span> <span class="n">light_curves</span><span class="p">)</span>
+
+    <span class="c1"># In this line, we simulate the dataset that we will fit</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">xo</span><span class="o">.</span><span class="n">eval_in_model</span><span class="p">(</span><span class="n">light_curve</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">+=</span> <span class="n">yerr</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+
+    <span class="c1"># The likelihood function assuming known Gaussian uncertainty</span>
+    <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="s2">&quot;obs&quot;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">light_curve</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span> <span class="n">observed</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># Fit for the maximum a posteriori parameters given the simuated</span>
+    <span class="c1"># dataset</span>
+    <span class="n">map_soln</span> <span class="o">=</span> <span class="n">xo</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">test_point</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">optimizing</span> <span class="n">logp</span> <span class="k">for</span> <span class="n">variables</span><span class="p">:</span> <span class="p">[</span><span class="n">b</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">logP</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">mean</span><span class="p">]</span>
+<span class="mi">133</span><span class="n">it</span> <span class="p">[</span><span class="mi">00</span><span class="p">:</span><span class="mi">07</span><span class="p">,</span> <span class="mf">18.51</span><span class="n">it</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">logp</span><span class="o">=</span><span class="mf">2.479354e+04</span><span class="p">]</span>
+<span class="n">message</span><span class="p">:</span> <span class="n">Desired</span> <span class="n">error</span> <span class="ow">not</span> <span class="n">necessarily</span> <span class="n">achieved</span> <span class="n">due</span> <span class="n">to</span> <span class="n">precision</span> <span class="n">loss</span><span class="o">.</span>
+<span class="n">logp</span><span class="p">:</span> <span class="mf">24787.977771807487</span> <span class="o">-&gt;</span> <span class="mf">24793.539425611227</span>
+</pre></div>
+</div>
+<p>Now we can plot the simulated data and the maximum a posteriori model to
+make sure that our initialization looks ok.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s2">&quot;.k&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="s2">&quot;bc&quot;</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">map_soln</span><span class="p">[</span><span class="s2">&quot;light_curves&quot;</span><span class="p">][:,</span> <span class="n">i</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;planet </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">t</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;relative flux&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time [days]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;map model&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/transit_10_0.png" src="../../_images/transit_10_0.png" />
+</div>
+<div class="section" id="sampling">
+<h2>Sampling<a class="headerlink" href="#sampling" title="Permalink to this headline">¶</a></h2>
+<p>Now, let’s sample from the posterior defined by this model. As usual,
+there are strong covariances between some of the parameters so we’ll use
+<a class="reference internal" href="../../user/api/#exoplanet.get_dense_nuts_step" title="exoplanet.get_dense_nuts_step"><code class="xref py py-func docutils literal notranslate"><span class="pre">exoplanet.get_dense_nuts_step()</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">model</span><span class="p">:</span>
+    <span class="n">trace</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+        <span class="n">tune</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span>
+        <span class="n">draws</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">map_soln</span><span class="p">,</span>
+        <span class="n">cores</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="n">xo</span><span class="o">.</span><span class="n">get_dense_nuts_step</span><span class="p">(</span><span class="n">target_accept</span><span class="o">=</span><span class="mf">0.9</span><span class="p">),</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Multiprocess sampling (2 chains in 2 jobs)
+NUTS: [b, r, u, logP, t0, mean]
+Sampling 2 chains, 0 divergences: 100%|██████████| 12000/12000 [01:49&lt;00:00, 109.71draws/s]
+</pre></div>
+</div>
+<p>After sampling, it’s important that we assess convergence. We can do
+that using the <code class="docutils literal notranslate"><span class="pre">pymc3.summary</span></code> function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pm</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">varnames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;period&quot;</span><span class="p">,</span> <span class="s2">&quot;t0&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>mean</th>
+      <th>sd</th>
+      <th>hpd_3%</th>
+      <th>hpd_97%</th>
+      <th>mcse_mean</th>
+      <th>mcse_sd</th>
+      <th>ess_mean</th>
+      <th>ess_sd</th>
+      <th>ess_bulk</th>
+      <th>ess_tail</th>
+      <th>r_hat</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>period[0]</th>
+      <td>15.448</td>
+      <td>0.002</td>
+      <td>15.444</td>
+      <td>15.452</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2173.0</td>
+      <td>2173.0</td>
+      <td>2435.0</td>
+      <td>3030.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>period[1]</th>
+      <td>9.292</td>
+      <td>0.000</td>
+      <td>9.292</td>
+      <td>9.293</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>4484.0</td>
+      <td>4484.0</td>
+      <td>4513.0</td>
+      <td>4124.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>t0[0]</th>
+      <td>3.503</td>
+      <td>0.006</td>
+      <td>3.493</td>
+      <td>3.514</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2195.0</td>
+      <td>2194.0</td>
+      <td>2428.0</td>
+      <td>3254.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>t0[1]</th>
+      <td>5.121</td>
+      <td>0.001</td>
+      <td>5.119</td>
+      <td>5.124</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>5800.0</td>
+      <td>5800.0</td>
+      <td>5907.0</td>
+      <td>3235.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>r[0]</th>
+      <td>0.040</td>
+      <td>0.002</td>
+      <td>0.037</td>
+      <td>0.042</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2453.0</td>
+      <td>2453.0</td>
+      <td>2500.0</td>
+      <td>3439.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>r[1]</th>
+      <td>0.058</td>
+      <td>0.001</td>
+      <td>0.056</td>
+      <td>0.060</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2624.0</td>
+      <td>2624.0</td>
+      <td>2676.0</td>
+      <td>3415.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>b[0]</th>
+      <td>0.671</td>
+      <td>0.046</td>
+      <td>0.583</td>
+      <td>0.740</td>
+      <td>0.001</td>
+      <td>0.001</td>
+      <td>1581.0</td>
+      <td>1581.0</td>
+      <td>1861.0</td>
+      <td>2343.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>b[1]</th>
+      <td>0.403</td>
+      <td>0.038</td>
+      <td>0.332</td>
+      <td>0.469</td>
+      <td>0.001</td>
+      <td>0.001</td>
+      <td>2438.0</td>
+      <td>2438.0</td>
+      <td>2610.0</td>
+      <td>2983.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>u[0]</th>
+      <td>0.378</td>
+      <td>0.207</td>
+      <td>0.001</td>
+      <td>0.717</td>
+      <td>0.003</td>
+      <td>0.002</td>
+      <td>4506.0</td>
+      <td>4506.0</td>
+      <td>4302.0</td>
+      <td>3714.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>u[1]</th>
+      <td>0.268</td>
+      <td>0.340</td>
+      <td>-0.336</td>
+      <td>0.830</td>
+      <td>0.007</td>
+      <td>0.005</td>
+      <td>2736.0</td>
+      <td>2534.0</td>
+      <td>2640.0</td>
+      <td>3023.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>mean</th>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>-0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>6740.0</td>
+      <td>3353.0</td>
+      <td>6750.0</td>
+      <td>4175.0</td>
+      <td>1.0</td>
+    </tr>
+  </tbody>
+</table>
+</div><p>That looks pretty good! Fitting this without <em>exoplanet</em> would have
+taken a lot more patience.</p>
+<p>Now we can also look at the <a class="reference external" href="https://corner.readthedocs.io">corner
+plot</a> of some of that parameters of
+interest:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">corner</span>
+
+<span class="n">samples</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">trace_to_dataframe</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">varnames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;period&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">])</span>
+<span class="n">truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+    <span class="n">xo</span><span class="o">.</span><span class="n">eval_in_model</span><span class="p">([</span><span class="n">period</span><span class="p">,</span> <span class="n">r</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">test_point</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">corner</span><span class="o">.</span><span class="n">corner</span><span class="p">(</span>
+    <span class="n">samples</span><span class="p">,</span>
+    <span class="n">truths</span><span class="o">=</span><span class="n">truth</span><span class="p">,</span>
+    <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;period 1&quot;</span><span class="p">,</span> <span class="s2">&quot;period 2&quot;</span><span class="p">,</span> <span class="s2">&quot;radius 1&quot;</span><span class="p">,</span> <span class="s2">&quot;radius 2&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/transit_16_0.png" src="../../_images/transit_16_0.png" />
+</div>
+<div class="section" id="phase-plots">
+<h2>Phase plots<a class="headerlink" href="#phase-plots" title="Permalink to this headline">¶</a></h2>
+<p>Like in the radial velocity tutorial (<a class="reference internal" href="../rv/#rv"><span class="std std-ref">Radial velocity fitting</span></a>), we can make plots of
+the model predictions for each planet.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">letter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="s2">&quot;bc&quot;</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+    <span class="c1"># Get the posterior median orbital parameters</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;period&quot;</span><span class="p">][:,</span> <span class="n">n</span><span class="p">])</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">][:,</span> <span class="n">n</span><span class="p">])</span>
+
+    <span class="c1"># Compute the median of posterior estimate of the contribution from</span>
+    <span class="c1"># the other planet. Then we can remove this from the data to plot</span>
+    <span class="c1"># just the planet we care about.</span>
+    <span class="n">other</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;light_curves&quot;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Plot the folded data</span>
+    <span class="n">x_fold</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span> <span class="o">%</span> <span class="n">p</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+        <span class="n">x_fold</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">other</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;.k&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=-</span><span class="mi">1000</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Plot the folded model</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x_fold</span><span class="p">)</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="n">inds</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x_fold</span><span class="p">)[</span><span class="n">inds</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.3</span><span class="p">]</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;light_curves&quot;</span><span class="p">][:,</span> <span class="n">inds</span><span class="p">,</span> <span class="n">n</span><span class="p">]</span> <span class="o">+</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">][:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_fold</span><span class="p">[</span><span class="n">inds</span><span class="p">],</span> <span class="n">pred</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C1&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;model&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Annotate the plot with the planet&#39;s period</span>
+    <span class="n">txt</span> <span class="o">=</span> <span class="s2">&quot;period = </span><span class="si">{0:.4f}</span><span class="s2"> +/- </span><span class="si">{1:.4f}</span><span class="s2"> d&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;period&quot;</span><span class="p">][:,</span> <span class="n">n</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;period&quot;</span><span class="p">][:,</span> <span class="n">n</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
+        <span class="n">txt</span><span class="p">,</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">xycoords</span><span class="o">=</span><span class="s2">&quot;axes fraction&quot;</span><span class="p">,</span>
+        <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+        <span class="n">textcoords</span><span class="o">=</span><span class="s2">&quot;offset points&quot;</span><span class="p">,</span>
+        <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+        <span class="n">va</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span>
+        <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time since transit [days]&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;relative flux&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;planet </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">letter</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/transit_18_0.png" src="../../_images/transit_18_0.png" />
+<img alt="../../_images/transit_18_1.png" src="../../_images/transit_18_1.png" />
+</div>
+<div class="section" id="citations">
+<h2>Citations<a class="headerlink" href="#citations" title="Permalink to this headline">¶</a></h2>
+<p>As described in the <a class="reference internal" href="../citation/#citation"><span class="std std-ref">Citing exoplanet &amp; its dependencies</span></a> tutorial, we can use
+<a class="reference internal" href="../../user/api/#exoplanet.citations.get_citations_for_model" title="exoplanet.citations.get_citations_for_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">exoplanet.citations.get_citations_for_model()</span></code></a> to construct an
+acknowledgement and BibTeX listing that includes the relevant citations
+for this model. This is especially important here because we have used
+quite a few model components that should be cited.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">model</span><span class="p">:</span>
+    <span class="n">txt</span><span class="p">,</span> <span class="n">bib</span> <span class="o">=</span> <span class="n">xo</span><span class="o">.</span><span class="n">citations</span><span class="o">.</span><span class="n">get_citations_for_model</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
+</pre></div>
+</div>
+<pre class="literal-block">This research made use of textsf{exoplanet} citep{exoplanet} and its
+dependencies citep{exoplanet:agol19, exoplanet:astropy13, exoplanet:astropy18,
+exoplanet:exoplanet, exoplanet:kipping13, exoplanet:luger18, exoplanet:pymc3,
+exoplanet:theano}.</pre>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bib</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[:</span><span class="mi">10</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">...&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@misc</span><span class="p">{</span><span class="n">exoplanet</span><span class="p">:</span><span class="n">exoplanet</span><span class="p">,</span>
+  <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Daniel</span> <span class="n">Foreman</span><span class="o">-</span><span class="n">Mackey</span> <span class="ow">and</span> <span class="n">Ian</span> <span class="n">Czekala</span> <span class="ow">and</span> <span class="n">Rodrigo</span> <span class="n">Luger</span> <span class="ow">and</span>
+            <span class="n">Eric</span> <span class="n">Agol</span> <span class="ow">and</span> <span class="n">Geert</span> <span class="n">Barentsen</span> <span class="ow">and</span> <span class="n">Tom</span> <span class="n">Barclay</span><span class="p">},</span>
+   <span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="n">exoplanet</span><span class="o">-</span><span class="n">dev</span><span class="o">/</span><span class="n">exoplanet</span> <span class="n">v0</span><span class="o">.</span><span class="mf">3.0</span><span class="p">},</span>
+   <span class="n">month</span> <span class="o">=</span> <span class="n">apr</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="mi">2020</span><span class="p">,</span>
+     <span class="n">doi</span> <span class="o">=</span> <span class="p">{</span><span class="mf">10.5281</span><span class="o">/</span><span class="n">zenodo</span><span class="o">.</span><span class="mi">1998447</span><span class="p">},</span>
+     <span class="n">url</span> <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">doi</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="mf">10.5281</span><span class="o">/</span><span class="n">zenodo</span><span class="o">.</span><span class="mi">1998447</span><span class="p">}</span>
+<span class="p">}</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+  <div class="t-pagination clearfix">
+    <span>
+      ← <a href="../rv/" title="Radial velocity fitting">Radial velocity fitting</a>
+    </span>
+    <span style="float:right">
+      <a href="../astrometric/" title="Astrometric fitting">Astrometric fitting</a> →
+    </span>
+  </div>
+
+
+    </div>
+<footer class="t-foot">
+    &copy; Copyright 2018, 2019, 2020, Dan Foreman-Mackey.
+    <br>
+    A <a href="https://typlog.com/">typlog</a> <a href="https://github.com/typlog/sphinx-typlog-theme">sphinx theme</a>,
+    designed by <a href="https://lepture.com/">Hsiaoming Yang</a>.
+</footer>
+
+<script id="versions-template" type="x-tmpl-mustache">
+<div class="versions">
+    <div class="current-version">
+        move-tests
+        <span class="fas fa-caret-down"></span>
+    </div>
+    <dl class="versions-dropdown">
+        {{#versions}}
+        <dd><a href="https://docs.exoplanet.codes/en/{{.}}/tutorials/transit">{{.}}</a></dd>
+        {{/versions}}
+    </dl>
+</div>
+</script>
+
+  </div>
+  <script>$(function(){$(".t-head_menu").on("click",function(){$("body").addClass("_expand")});$(".t-body").on("click",function(){$("body").removeClass("_expand")});$(".t-sidebar_close").on("click",function(){$("body").removeClass("_expand")});$("a.footnote-reference").on("click",function(e){e.preventDefault();var id=$(this).attr("href");var html=$(id).find("td.label + td").html();var w=Math.max(document.documentElement.clientWidth,window.innerWidth||0);var style="top:"+e.pageY+"px;";if(w>560){style+="width:480px;";if(e.pageX>240&&e.pageX+240<w){style+="left:"+(e.pageX-240)+"px;"}else if(e.pageX<=240){style+="left:20px;"}else{style+="right:20px;"}}showFootnote(html,style)});function showFootnote(html,style){var CONTENT_ID="typlog-footnote-content";var content=document.getElementById(CONTENT_ID);if(!content){content=document.createElement("div");content.id=CONTENT_ID;$(".t-body").append(content)}var MASK_ID="typlog-footnote-mask";var mask=document.getElementById(MASK_ID);if(!mask){mask=document.createElement("div");mask.id=MASK_ID;document.body.appendChild(mask);mask.addEventListener("click",function(){content.className="";mask.className=""})}content.innerHTML=html;content.setAttribute("style",style);content.className="_active";mask.className="_active"}function fetchGitHubRepo(repo){var url="https://api.github.com/repos/"+repo;$.getJSON(url,function(data){var counts=[+new Date,data.stargazers_count,data.forks_count];localStorage.setItem("gh:"+repo,JSON.stringify(counts));updateGitHubStats(counts[1],counts[2])})}function updateGitHubStats(stars,forks){$(".github_stars strong").text(stars);$(".github_forks strong").text(forks)}function initGitHub(url){if(!url){return}var repo=url.replace("https://github.com/","");var cache=localStorage.getItem("gh:"+repo);if(cache){try{var counts=JSON.parse(cache);updateGitHubStats(counts[1],counts[2]);var delta=new Date-counts[0];if(delta<0||delta>9e5){fetchGitHubRepo(repo)}}catch(error){fetchGitHubRepo(repo)}}else{fetchGitHubRepo(repo)}}initGitHub($(".github").attr("href"))});</script>
+</body>
+</html>
